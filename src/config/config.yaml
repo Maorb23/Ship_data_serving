@@ -1,0 +1,28 @@
+pipeline:
+  source_db: data/raw/ship_positions.db
+  target_db: data/silver/ship_positions.db
+  source_schema: raw
+  source_table: ship_positions
+  target_schema: silver
+  target_table: SHIP_POSITIONS
+  rejects_table: SHIP_POSITIONS_REJECTS
+  sql_dir: elt_utils/sql
+
+dqa:
+  lat_min: -90.0
+  lat_max: 90.0
+  lon_min: -180.0
+  lon_max: 180.0
+  sog_min: 0.0
+  sog_max: 100.0
+  max_sog_diff: 40.0
+  cog_min: 0.0
+  cog_max: 360.0
+
+queries:
+  create_target_table: create_target_table.sql
+  create_rejects_table: create_rejects_table.sql
+  extract_delta: extract_delta.sql
+  fetch_target_lookback: fetch_target_lookback.sql
+  insert_rejects: insert_rejects.sql
+  insert_target_rows: insert_target_rows.sql
