@@ -127,3 +127,35 @@ A README.md in the project root explaining:
 - Any assumptions or trade-offs
 
 
+---
+
+## Continuation prompts:
+
+1. After Chatgpt5.3 codex finished planning :
+
+*The Queries should be saved in ship_positions/elt_utils/sql  and db_ops.py should call the queries from there. Besides it everything looks good*
+
+2. After chatgpt Finished code implementation:
+
+Write a .ipynb notebook that showcases the entire pipeline calling for the files using % magic commands.
+
+3. After briefly talking with chatgpt:
+You're a senior data scientist with 5 years of experience specializes in ships algorithms.
+move this filtering logic in delta to dqa:
+delta_df = db_ops.execute_query_file(
+            query_file,
+            params=[
+                dqa_cfg["lat_min"],
+                dqa_cfg["lat_max"],
+                dqa_cfg["lon_min"],
+                dqa_cfg["lon_max"],
+                dqa_cfg["sog_min"],
+                dqa_cfg["sog_max"],
+                dqa_cfg["cog_min"],
+                dqa_cfg["cog_max"],
+            ],
+            as_df=True,
+        ) 
+
+    Moreover add in dqa a filtering for gps error, is it the case where lat == 0 and lon == 0?
+

@@ -13,6 +13,34 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = PROJECT_ROOT / "src" / "config" / "config.yaml"
 
 
+def test_execute_query_file_reads_sql_file(tmp_path):
+    db_path = tmp_path / "test.db"
+    sql_dir = tmp_path / "sql"
+    sql_dir.mkdir()
+
+    con = duckdb.connect(str(db_path))
+    con.execute("CREATE TABLE t (x INTEGER);")
+    con.execute("INSERT INTO t VALUES (1), (2);")
+    con.close()
+
+    (sql_dir / "select_t.sql").write_text(
+        "SELECT * FROM t ORDER BY x;",
+        encoding="utf-8",
+    )
+
+    db_ops = DBops(
+        db_path=str(db_path),
+        sql_dir=str(sql_dir),
+    )
+
+    try:
+        result = db_ops.execute_query_file("select_t.sql", fetch=True)
+    finally:
+        db_ops.close()
+
+    assert result == [(1,), (2,)]
+
+
 def test_delta_applies_dedup_then_anti_join(tmp_path):
     source_db = tmp_path / "source.db"
     target_db = tmp_path / "target.db"
@@ -54,6 +82,7 @@ def test_delta_applies_dedup_then_anti_join(tmp_path):
 
     try:
         Publish.initialize_tables(db_ops, configs)
+
         db_ops.execute_sql(
             """
             INSERT INTO target_db.silver.SHIP_POSITIONS (
@@ -67,6 +96,7 @@ def test_delta_applies_dedup_then_anti_join(tmp_path):
         )
 
         delta_df = Delta.delta(db_ops, configs)
+
     finally:
         db_ops.close()
 
@@ -74,3 +104,4 @@ def test_delta_applies_dedup_then_anti_join(tmp_path):
     row = delta_df.iloc[0]
     assert row["ship_name"] == "Ship_A"
     assert row["time"] == 2.0
+    assert row["sog"] == 11.0

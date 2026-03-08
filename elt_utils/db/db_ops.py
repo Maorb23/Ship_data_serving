@@ -74,7 +74,7 @@ class DBops:
         self,
         file_path: str,
         params: list | tuple | None = None,
-        template_params: dict[str, Any] | None = None,
+        template_params: dict[str, Any] | None = None, # for simple string replacement in the query text
         as_df: bool = False,
         fetch: bool = True,
     ) -> list | pd.DataFrame:
@@ -91,38 +91,6 @@ class DBops:
         if fetch:
             return cursor.fetchall()
         return []
-
-    def execute_sql(
-        self,
-        sql: str,
-        params: list | tuple | None = None,
-        as_df: bool = False,
-        fetch: bool = True,
-    ) -> list | pd.DataFrame:
-        cursor = self.conn.execute(sql, params or [])
-        if as_df:
-            return cursor.df()
-        if fetch:
-            return cursor.fetchall()
-        return []
-
-    def write_df_to_table(self, df: "pd.DataFrame", schema: str, table_name: str) -> None:
-        """Write a pandas DataFrame into sql.table_name."""
-        if df.empty:
-            return
-
-        self._validate_identifier(schema)
-        self._validate_identifier(table_name)
-
-        temp_table_name = f"_tmp_{schema}_{table_name}"
-        self.register_df(temp_table_name, df)
-        try:
-            self.conn.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
-            self.conn.execute(
-                f"INSERT INTO {schema}.{table_name} SELECT * FROM {temp_table_name};"
-            )
-        finally:
-            self.unregister(temp_table_name)
 
     def register_df(self, name: str, df: pd.DataFrame) -> None:
         self._validate_identifier(name)
